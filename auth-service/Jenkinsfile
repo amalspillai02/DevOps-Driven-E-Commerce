@@ -34,7 +34,7 @@ pipeline {
 
         stage('Deploy to Minikube') {
             steps {
-                withEnv(['KUBECONFIG=/home/amal/.kube/config']) {
+                withEnv(['KUBECONFIG=/var/lib/jenkins/.kube/config']) {
                     sh 'kubectl apply -f k8s/auth/'
                 }
             }
