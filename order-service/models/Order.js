@@ -1,18 +1,19 @@
-const { DataTypes } = require('sequelize');
-const { sequelize } = require('../config/db');
+// order-service/models/orderModel.js
+const mongoose = require('mongoose');
 
-const Order = sequelize.define('Order', {
-  productId: {
-    type: DataTypes.STRING,
-    allowNull: false
+const orderSchema = new mongoose.Schema({
+  product: {
+    type: String,
+    required: true,
   },
   quantity: {
-    type: DataTypes.INTEGER,
-    defaultValue: 1
+    type: Number,
+    required: true,
   },
-  userId: {
-    type: DataTypes.STRING
-  }
-});
+  userEmail: {
+    type: String,
+    required: true,
+  },
+}, { timestamps: true });
 
-module.exports = Order;
+module.exports = mongoose.model('Order', orderSchema);

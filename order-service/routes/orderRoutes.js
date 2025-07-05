@@ -1,10 +1,26 @@
 const express = require('express');
-const { createOrder, getOrders, getOrderById } = require('../controllers/orderController');
-
+const Order = require('../models/Order');
 const router = express.Router();
 
-router.post('/', createOrder);
-router.get('/', getOrders);
-router.get('/:id', getOrderById);
+// Create order
+router.post('/', async (req, res) => {
+  try {
+    const newOrder = new Order(req.body);
+    const savedOrder = await newOrder.save();
+    res.status(201).json(savedOrder);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Get all orders
+router.get('/', async (req, res) => {
+  try {
+    const orders = await Order.find();
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

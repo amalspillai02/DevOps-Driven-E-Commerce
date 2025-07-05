@@ -1,20 +1,18 @@
+# Use Node.js Alpine base image
 FROM node:18-alpine
 
-# ✅ Set working directory
+# Create app directory
 WORKDIR /app
 
-# ✅ Install netcat for readiness checks
-RUN apk add --no-cache netcat-openbsd
-
-# ✅ Install app dependencies
+# Copy package files and install dependencies
 COPY package*.json ./
 RUN npm install
 
-# ✅ Copy rest of the app
+# Copy the rest of the app code
 COPY . .
 
-# ✅ Expose port (default for order-service)
+# Expose the port
 EXPOSE 5002
 
-# ✅ Start the service
+# Start the service
 CMD ["npm", "start"]

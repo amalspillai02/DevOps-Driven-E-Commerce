@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: product
-          image: product-service:latest
-          imagePullPolicy: Never
+          image: amalspillai02/product-service:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 5001
           env:

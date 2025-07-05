@@ -1,13 +1,14 @@
-const { Sequelize } = require('sequelize');
+// order-service/config/db.js
+const mongoose = require('mongoose');
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USER,
-  process.env.DB_PASSWORD,
-  {
-    host: 'postgres',
-    dialect: 'postgres'
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB connected");
+  } catch (error) {
+    console.error("MongoDB connection failed:", error);
+    process.exit(1);
   }
-);
+};
 
-module.exports = { sequelize };
+module.exports = connectDB;

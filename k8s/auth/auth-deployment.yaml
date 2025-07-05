@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: auth
-          image: auth-service:latest
-          imagePullPolicy: Never  # Using local Docker image
+          image: amalspillai02/auth-service:latest
+          imagePullPolicy: Always  # Using local Docker image
           ports:
             - containerPort: 5000
           env:
