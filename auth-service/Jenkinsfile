@@ -1,17 +1,64 @@
+// pipeline {
+//     agent any
+
+//     environment {
+//         IMAGE_NAME = 'amalspillai02/auth-service'
+//         TAG = 'latest'
+//     }
+
+//     stages {
+//         stage('Checkout Code') {
+//             steps {
+//                 checkout scm
+//             }
+//         }
+
+//         stage('Build Docker Image') {
+//             steps {
+//                 script {
+//                     sh 'docker build -t $IMAGE_NAME:$TAG auth-service'
+//                 }
+//             }
+//         }
+
+//         stage('Push to Docker Hub') {
+//             steps {
+//                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+//                     sh '''
+//             echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+//             docker push $IMAGE_NAME:$TAG
+//           '''
+//                 }
+//             }
+//         }
+
+//         stage('Deploy to Minikube') {
+//             steps {
+//                 withEnv(['KUBECONFIG=/var/lib/jenkins/.kube/config']) {
+//                     sh 'kubectl apply -f k8s/auth/'
+//                 }
+//             }
+//         }
+//     }
+// }
+
 pipeline {
     agent any
 
     environment {
         IMAGE_NAME = 'amalspillai02/auth-service'
         TAG = 'latest'
+        // Add AWS Region and EKS Cluster Name
+        AWS_REGION = 'ap-southeast-1' // e.g., us-east-1
+        EKS_CLUSTER_NAME = 'devops-eks-cluster' // The name of your EKS cluster
     }
 
     stages {
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
+        // stage('Checkout Code') {
+        //     steps {
+        //         checkout scm
+        //     }
+        // }
 
         stage('Build Docker Image') {
             steps {
@@ -25,17 +72,34 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            docker push $IMAGE_NAME:$TAG
-          '''
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push $IMAGE_NAME:$TAG
+                    '''
                 }
             }
         }
 
-        stage('Deploy to Minikube') {
+        stage('Deploy to AWS EKS') {
             steps {
-                withEnv(['KUBECONFIG=/var/lib/jenkins/.kube/config']) {
-                    sh 'kubectl apply -f k8s/auth/'
+                script {
+                    // 1. Configure AWS Credentials
+                    // This assumes you have AWS credentials configured in Jenkins, e.g., via "Secret text" or "AWS Credentials" type.
+                    // Replace 'aws-credentials-id' with the actual ID of your AWS credentials in Jenkins.
+                    withCredentials([aws(credentialsId: 'aws-creds')]) {
+                        // 2. Install AWS CLI and kubectl if not present (optional, but good practice for robust agents)
+                        //    You might want to bake these into your Jenkins agent image for faster builds.
+                        // sh 'sudo apt-get update && sudo apt-get install -y awscli kubectl' // Example for Debian/Ubuntu
+                        // sh 'curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" && chmod +x kubectl && sudo mv kubectl /usr/local/bin/' // Install kubectl if not present
+
+                        // 3. Update kubeconfig for EKS
+                        // This command fetches the EKS cluster details and updates your kubeconfig.
+                        sh 'aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME'
+
+                        // Set KUBECONFIG explicitly to the default location where aws eks update-kubeconfig puts it,
+                        // or to a specific path if you prefer.
+                        // The default is usually ~/.kube/config
+                        sh 'kubectl apply -f k8s/auth/'
+                    }
                 }
             }
         }
