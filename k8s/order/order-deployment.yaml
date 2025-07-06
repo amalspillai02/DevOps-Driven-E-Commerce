@@ -21,14 +21,3 @@ spec:
             - name: MONGO_URI
               value: mongodb://mongo:27017/orders
           imagePullPolicy: Always
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: order-service
-spec:
-  selector:
-    app: order
-  ports:
-    - port: 5002
-      targetPort: 5002
